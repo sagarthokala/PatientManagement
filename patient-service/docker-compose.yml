@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql
     networks:
-      - patient-network
+      - my-network
 
   patient-service:
     build: .
@@ -29,10 +29,12 @@ services:
       BILLING_SERVICE_ADDRESS: billing-service
       BILLING_SERVICE_GRPC_PORT: 9001
     networks:
-      - patient-network
+      - my-network
 
 volumes:
   postgres-data:
 
 networks:
-  patient-network:
+  my-network:
+    external: true
+    name: my-shared-network

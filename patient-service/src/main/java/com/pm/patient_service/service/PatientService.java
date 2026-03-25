@@ -45,8 +45,23 @@ public class PatientService {
         Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDto));
 
         log.info("entering grpc method ");
-        billingServiceGrpcClient.createBillingAccount(newPatient.getId().toString(),
-                newPatient.getName(), newPatient.getEmail());
+        try {
+            billingServiceGrpcClient.createBillingAccount(
+                    newPatient.getId().toString(),
+                    newPatient.getName(),
+                    newPatient.getEmail()
+            );
+            log.info("gRPC call successful");
+
+        } catch (Exception e) {
+            log.error("Error while calling Billing Service via gRPC", e);
+
+            // Option 1: Fail the whole request (strict consistency)
+            throw new RuntimeException("Billing service is unavailable. Please try again later.");
+
+            // Option 2 (alternative): Don't fail, just log (eventual consistency)
+            // log.warn("Continuing without billing account creation");
+        }
         log.info("exiting grpc method ");
 
         return PatientMapper.toDTO(newPatient);

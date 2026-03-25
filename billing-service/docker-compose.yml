@@ -8,4 +8,11 @@ services:
     ports:
       - "4001:4001"
       - "9001:9001"
+    networks:
+      - my-network
     restart: always
+
+networks:
+  my-network:
+    external: true
+    name: my-shared-network

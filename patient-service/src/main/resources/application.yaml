@@ -35,3 +35,13 @@ spring:
 
 server:
   port: 4000
+
+grpc:
+  client:
+    billing-service:
+      address: static://billing-service:9001
+      negotiationType: plaintext
+
+logging:
+  level:
+    root: info
