@@ -5,6 +5,7 @@ import com.pm.patient_service.dto.PatientResponseDto;
 import com.pm.patient_service.exception.EmailAlreadyExitsException;
 import com.pm.patient_service.exception.PatientNotFoundException;
 import com.pm.patient_service.grpc.BillingServiceGrpcClient;
+import com.pm.patient_service.kafka.KafkaProducer;
 import com.pm.patient_service.mapper.PatientMapper;
 import com.pm.patient_service.model.Patient;
 import com.pm.patient_service.repository.PatientRepository;
@@ -22,10 +23,12 @@ public class PatientService {
     private static final Logger log = LoggerFactory.getLogger(PatientService.class);
     private final PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
+    private final KafkaProducer kafkaProducer;
 
-    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
+    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient, KafkaProducer kafkaProducer) {
         this.patientRepository = patientRepository;
         this.billingServiceGrpcClient = billingServiceGrpcClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     //fetch all the patients from db
@@ -52,6 +55,8 @@ public class PatientService {
                     newPatient.getEmail()
             );
             log.info("gRPC call successful");
+
+            kafkaProducer.sendEvent(newPatient);
 
         } catch (Exception e) {
             log.error("Error while calling Billing Service via gRPC", e);
