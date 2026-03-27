@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  analytics-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "4004:4004"
+    networks:
+      - my-shared-network
+    restart: always
+
+networks:
+  my-shared-network:
+    external: true
