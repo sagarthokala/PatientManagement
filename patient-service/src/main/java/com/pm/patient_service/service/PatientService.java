@@ -4,9 +4,12 @@ import com.pm.patient_service.dto.PatientRequestDto;
 import com.pm.patient_service.dto.PatientResponseDto;
 import com.pm.patient_service.exception.EmailAlreadyExitsException;
 import com.pm.patient_service.exception.PatientNotFoundException;
+import com.pm.patient_service.grpc.BillingServiceGrpcClient;
 import com.pm.patient_service.mapper.PatientMapper;
 import com.pm.patient_service.model.Patient;
 import com.pm.patient_service.repository.PatientRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,10 +19,13 @@ import java.util.UUID;
 @Service
 public class PatientService {
 
-    private PatientRepository patientRepository;
+    private static final Logger log = LoggerFactory.getLogger(PatientService.class);
+    private final PatientRepository patientRepository;
+    private final BillingServiceGrpcClient billingServiceGrpcClient;
 
-    public PatientService(PatientRepository patientRepository) {
+    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
         this.patientRepository = patientRepository;
+        this.billingServiceGrpcClient = billingServiceGrpcClient;
     }
 
     //fetch all the patients from db
@@ -37,6 +43,26 @@ public class PatientService {
             throw new EmailAlreadyExitsException("A patient with this EmailId already exists");
         }
         Patient newPatient = patientRepository.save(PatientMapper.toModel(patientRequestDto));
+
+        log.info("entering grpc method ");
+        try {
+            billingServiceGrpcClient.createBillingAccount(
+                    newPatient.getId().toString(),
+                    newPatient.getName(),
+                    newPatient.getEmail()
+            );
+            log.info("gRPC call successful");
+
+        } catch (Exception e) {
+            log.error("Error while calling Billing Service via gRPC", e);
+
+            // Option 1: Fail the whole request (strict consistency)
+            throw new RuntimeException("Billing service is unavailable. Please try again later.");
+
+            // Option 2 (alternative): Don't fail, just log (eventual consistency)
+            // log.warn("Continuing without billing account creation");
+        }
+        log.info("exiting grpc method ");
 
         return PatientMapper.toDTO(newPatient);
     }

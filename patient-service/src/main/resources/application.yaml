@@ -2,25 +2,46 @@ spring:
   application:
     name: patient-service
 
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: sa
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: update
-
+#  datasource:
+#    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password: sa
+#
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
+#
+#  jpa:
+#    database-platform: org.hibernate.dialect.H2Dialect
+#    hibernate:
+#      ddl-auto: update
+#
   sql:
     init:
       mode: always
 
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
 server:
   port: 4000
+
+grpc:
+  client:
+    billing-service:
+      address: static://billing-service:9001
+      negotiationType: plaintext
+
+logging:
+  level:
+    root: info
