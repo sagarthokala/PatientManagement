@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: auth-service
+
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 4005
+
+jwt:
+  secret: ${JWT_SECRET}

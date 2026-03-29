@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  auth-postgres-db:
+    image: postgres
+    container_name: auth-service-db
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5002:5432"
+    volumes:
+      - auth-postgres-data:/var/lib/postgresql
+    networks:
+      - my-network
+
+  auth-service:
+    build: .
+    container_name: auth-service
+    ports:
+      - "4005:4005"
+    depends_on:
+      - auth-postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres-db:5432/auth_service_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      JWT_SECRET: nZp9R1YkQ3l6c2hXb0tQdG5WbE9xZ2JzVnZrU0xYc0pQeFZ4T2Z3PQ==
+
+
+    networks:
+      - my-network
+
+volumes:
+  auth-postgres-data:
+
+networks:
+  my-network:
+    external: true
+    name: my-shared-network
